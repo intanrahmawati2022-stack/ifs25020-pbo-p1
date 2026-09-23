@@ -1,133 +1,81 @@
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Scanner;
-import java.util.Map;
+import java.util.*;
 
 public class App {
-  public static void main(String[] args) {
-    ArrayList<Integer> listData = new ArrayList<>();
-    HashMap<Integer, Integer> frekuensi = new HashMap<>();
-    Scanner scanner = new Scanner(System.in);
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+        List<Integer> list = new ArrayList<>();
 
-    listData = getArray(scanner, listData);
+        while (scanner.hasNext()) {
+            String token = scanner.next();
+            if (token.equals("---")) break;
+            list.add(Integer.parseInt(token));
+        }
 
-    if (listData.isEmpty()) {
-      System.out.println("Data kosong");
-      scanner.close();
-      return;
+        // Jika input langsung --- (tanpa nilai), program tidak menampilkan apa pun.
+        if (list.isEmpty()) return;
+
+        int tertinggi = Collections.max(list);
+        int terendah = Collections.min(list);
+
+        Map<Integer, Integer> freqMap = new HashMap<>();
+        for (int val : list) {
+            freqMap.put(val, freqMap.getOrDefault(val, 0) + 1);
+        }
+
+        int terbanyakVal = list.get(0);
+        int maxFreq = -1;
+        int tersedikitVal = list.get(0);
+        int minFreq = Integer.MAX_VALUE;
+
+        long maxJumlah = Long.MIN_VALUE;
+        int jumlahTertinggiVal = list.get(0);
+        long minJumlah = Long.MAX_VALUE;
+        int jumlahTerendahVal = list.get(0);
+
+        for (Map.Entry<Integer, Integer> entry : freqMap.entrySet()) {
+            int val = entry.getKey();
+            int freq = entry.getValue();
+            long jumlah = (long) val * freq;
+
+            // Terbanyak: frekuensi tertinggi; jika seri, pilih nilai lebih besar
+            if (freq > maxFreq) {
+                maxFreq = freq;
+                terbanyakVal = val;
+            } else if (freq == maxFreq) {
+                if (val > terbanyakVal) terbanyakVal = val;
+            }
+
+            // Tersedikit: frekuensi terendah; jika seri, pilih nilai lebih kecil
+            if (freq < minFreq) {
+                minFreq = freq;
+                tersedikitVal = val;
+            } else if (freq == minFreq) {
+                if (val < tersedikitVal) tersedikitVal = val;
+            }
+
+            // Jumlah Tertinggi: hasil (nilai * frekuensi) terbesar; jika seri, pilih nilai lebih besar
+            if (jumlah > maxJumlah) {
+                maxJumlah = jumlah;
+                jumlahTertinggiVal = val;
+            } else if (jumlah == maxJumlah) {
+                if (val > jumlahTertinggiVal) jumlahTertinggiVal = val;
+            }
+
+            // Jumlah Terendah: hasil (nilai * frekuensi) terkecil; jika seri, pilih nilai lebih kecil
+            if (jumlah < minJumlah) {
+                minJumlah = jumlah;
+                jumlahTerendahVal = val;
+            } else if (jumlah == minJumlah) {
+                if (val < jumlahTerendahVal) jumlahTerendahVal = val;
+            }
+        }
+
+        // Menampilkan Output Sesuai Format
+        System.out.println("Tertinggi: " + tertinggi);
+        System.out.println("Terendah: " + terendah);
+        System.out.println("Terbanyak: " + terbanyakVal + " (" + maxFreq + "x)");
+        System.out.println("Tersedikit: " + tersedikitVal + " (" + minFreq + "x)");
+        System.out.println("Jumlah Tertinggi: " + jumlahTertinggiVal + " * " + freqMap.get(jumlahTertinggiVal) + " = " + maxJumlah);
+        System.out.println("Jumlah Terendah: " + jumlahTerendahVal + " * " + freqMap.get(jumlahTerendahVal) + " = " + minJumlah);
     }
-
-    frekuensi = getFrekuensi(frekuensi, listData);
-    Map.Entry<Integer, Integer> terbanyak = getTerbanyak(frekuensi);
-    Map.Entry<Integer, Integer> tersedikit = getTersedikit(frekuensi);
-    int tertinggi = getTertinggi(listData);
-    int terendah = getTerendah(listData);
-    int frekTertinggi = getFrekTertinggi(frekuensi, tertinggi);
-    int frekTerendah = getFrekTerendah(frekuensi, terendah);
-    int jumlahTertinggi = getJumlahTertinggi(frekTertinggi, tertinggi);
-    int jumlahTerendah = getJumlahTerendah(frekTerendah, terendah);
-
-    tampilkan(tertinggi, terendah, terbanyak, tersedikit, jumlahTertinggi, jumlahTerendah, frekTertinggi, frekTerendah);
-    scanner.close();
-  }
-
-  public static ArrayList<Integer> getArray(Scanner scanner, ArrayList<Integer> listData) {
-    while (true) {
-      String inputString = scanner.nextLine().trim();
-      if (inputString.equals("---")) {
-        break;
-      }
-      try {
-        int input = Integer.parseInt(inputString);
-        listData.add(input);
-      } catch (NumberFormatException e) {
-        System.out.println("Input tidak valid, harus berupa angka");
-      }
-    }
-    return listData;
-  }
-
-  public static int getTertinggi(ArrayList<Integer> listData) {
-    int maksimum = listData.get(0);
-    for (int i = 1; i < listData.size(); i++) {
-      if (listData.get(i) > maksimum) {
-        maksimum = listData.get(i);
-      }
-    }
-    return maksimum;
-  }
-
-  public static int getTerendah(ArrayList<Integer> listData) {
-    int minimum = listData.get(0);
-    for (int i = 1; i < listData.size(); i++) {
-      if (listData.get(i) < minimum) {
-        minimum = listData.get(i);
-      }
-    }
-    return minimum;
-  }
-
-  public static HashMap<Integer, Integer> getFrekuensi(HashMap<Integer, Integer> frekuensi, ArrayList<Integer> listData) {
-    for (int data : listData) {
-      if (frekuensi.containsKey(data)) {
-        frekuensi.put(data, frekuensi.get(data) + 1);
-      } else {
-        frekuensi.put(data, 1);
-      }
-    }
-    return frekuensi;
-  }
-
-  public static Map.Entry<Integer, Integer> getTerbanyak(HashMap<Integer, Integer> frekuensi) {
-    Map.Entry<Integer, Integer> terbanyakKey = null;
-    int terbanyak = 0;
-    for (Map.Entry<Integer, Integer> entry : frekuensi.entrySet()) {
-      if (terbanyakKey == null || entry.getValue() > terbanyak
-          || (entry.getValue() == terbanyak && entry.getKey() > terbanyakKey.getKey())) {
-        terbanyak = entry.getValue();
-        terbanyakKey = entry;
-      }
-    }
-    return terbanyakKey;
-  }
-
-  public static Map.Entry<Integer, Integer> getTersedikit(HashMap<Integer, Integer> frekuensi) {
-    Map.Entry<Integer, Integer> tersedikitKey = null;
-    int tersedikit = Integer.MAX_VALUE;
-    for (Map.Entry<Integer, Integer> entry : frekuensi.entrySet()) {
-      if (tersedikitKey == null || entry.getValue() < tersedikit
-          || (entry.getValue() == tersedikit && entry.getKey() < tersedikitKey.getKey())) {
-        tersedikit = entry.getValue();
-        tersedikitKey = entry;
-      }
-    }
-    return tersedikitKey;
-  }
-
-  public static int getFrekTertinggi(HashMap<Integer, Integer> frekuensi, int tertinggi) {
-    return frekuensi.get(tertinggi);
-  }
-
-  public static int getFrekTerendah(HashMap<Integer, Integer> frekuensi, int terendah) {
-    return frekuensi.get(terendah);
-  }
-
-  public static int getJumlahTertinggi(int frekTertinggi, int tertinggi) {
-    return frekTertinggi * tertinggi;
-  }
-
-  public static int getJumlahTerendah(int frekTerendah, int terendah) {
-    return frekTerendah * terendah;
-  }
-
-  public static void tampilkan(int tertinggi, int terendah, Map.Entry<Integer, Integer> terbanyak,
-      Map.Entry<Integer, Integer> tersedikit, int jumlahTertinggi, int jumlahTerendah,
-      int frekTertinggi, int frekTerendah) {
-    System.out.printf("Tertinggi: %d\n", tertinggi);
-    System.out.printf("Terendah: %d\n", terendah);
-    System.out.printf("Terbanyak: %d (%dx)\n", terbanyak.getKey(), terbanyak.getValue());
-    System.out.printf("Tersedikit: %d (%dx)\n", tersedikit.getKey(), tersedikit.getValue());
-    System.out.printf("Jumlah Tertinggi: %d * %d = %d\n", tertinggi, frekTertinggi, jumlahTertinggi);
-    System.out.printf("Jumlah Terendah: %d * %d = %d\n", terendah, frekTerendah, jumlahTerendah);
-  }
 }
