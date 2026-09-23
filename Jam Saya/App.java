@@ -1,109 +1,77 @@
 import java.util.Scanner;
 
 public class App {
-  private static final int MENIT_DALAM_SEHARI = 1440;
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+        
+        // Membaca jam awal
+        if (!scanner.hasNextLine()) return;
+        String initialTimeStr = scanner.nextLine().trim();
 
-  public static void main(String[] args) {
-    Scanner scanner = new Scanner(System.in);
-    String inputJam = scanner.nextLine().trim();
-    int totalMenitPerintah = 0;
-    int pergantianHari = 0;
-
-    if (isJamValid(inputJam)) {
-      int totalMenitAwal = getTotalMenit(inputJam);
-      int totalMenitSekarang = getTotalMenit(inputJam);
-      while (true) {
-        String inputPerintah = scanner.nextLine().trim();
-        if (inputPerintah.equals("---")) {
-          break;
+        // Validasi format pemisahan jam dan menit (harus tepat 2 bagian)
+        String[] timeParts = initialTimeStr.split(":");
+        if (timeParts.length != 2) {
+            System.out.println("Jam tidak valid");
+            return;
         }
 
-        if (isInputPerintahValid(inputPerintah)) {
-          if (getPerintah(inputPerintah) == '+') {
-            totalMenitSekarang += getN(inputPerintah);
-            totalMenitPerintah += getN(inputPerintah);
-            if (totalMenitSekarang >= MENIT_DALAM_SEHARI) {
-              pergantianHari++;
-              totalMenitSekarang -= MENIT_DALAM_SEHARI;
-            }
-          } else {
-            totalMenitSekarang -= getN(inputPerintah);
-            totalMenitPerintah -= getN(inputPerintah);
-            if (totalMenitSekarang < 0) {
-              pergantianHari++;
-              totalMenitSekarang += MENIT_DALAM_SEHARI;
-            }
-          }
-        } else {
-          System.out.println("Perintah tidak valid");
+        int h, m;
+        try {
+            h = Integer.parseInt(timeParts[0].trim());
+            m = Integer.parseInt(timeParts[1].trim());
+        } catch (NumberFormatException e) {
+            System.out.println("Jam tidak valid");
+            return;
         }
-      }
-      tampilkan(totalMenitAwal, totalMenitSekarang, totalMenitPerintah, pergantianHari);
-    } else {
-      System.out.println("Jam tidak valid");
+
+        // Validasi rentang jam (0-23) dan menit (0-59)
+        if (h < 0 || h > 23 || m < 0 || m > 59) {
+            System.out.println("Jam tidak valid");
+            return;
+        }
+
+        int currentMinutes = h * 60 + m;
+        int totalGeser = 0;
+        int pergantianHari = 0;
+
+        // Membaca perintah geser baris per baris hingga "---"
+        while (scanner.hasNextLine()) {
+            String cmd = scanner.nextLine().trim();
+            if (cmd.equals("---")) break;
+            if (cmd.isEmpty()) continue;
+
+            // Validasi format perintah harus berawalan '+' atau '-' diikuti angka
+            if (!cmd.matches("^[+-]\\d+$")) {
+                System.out.println("Perintah tidak valid");
+                continue;
+            }
+
+            int n = Integer.parseInt(cmd);
+            totalGeser += n;
+            currentMinutes += n;
+
+            // Normalisasi dan perhitungan pergantian hari (maju atau mundur melewati tengah malam)
+            while (currentMinutes >= 1440) {
+                currentMinutes -= 1440;
+                pergantianHari++;
+            }
+            while (currentMinutes < 0) {
+                currentMinutes += 1440;
+                pergantianHari++;
+            }
+        }
+
+        // Konversi kembali dari total menit ke jam dan menit format 2 digit (%02d)
+        int finalH = currentMinutes / 60;
+        int finalM = currentMinutes % 60;
+
+        // Menampilkan hasil akhir
+        System.out.println("Jam Awal: " + String.format("%02d:%02d", h, m));
+        System.out.println("Jam Akhir: " + String.format("%02d:%02d", finalH, finalM));
+        
+        // Aturan tanda pada total menit: '+' jika positif, kosong/0 jika nol, '-' jika negatif
+        String sign = (totalGeser > 0) ? "+" : "";
+        System.out.println("Total Menit: " + sign + totalGeser);
+        System.out.println("Pergantian Hari: " + pergantianHari);
     }
-
-    scanner.close();
-  }
-
-  public static int getTotalMenit(String inputJam) {
-    String[] arrJamMenit = inputJam.split("\\:");
-    int jam = Integer.parseInt(arrJamMenit[0]);
-    int menit = Integer.parseInt(arrJamMenit[1]);
-    return (jam * 60) + menit;
-  }
-
-  public static boolean isJamValid(String inputJam) {
-    boolean valid = true;
-    try {
-      String[] arrJamMenit = inputJam.split("\\:");
-      if (arrJamMenit.length != 2) {
-        return false;
-      }
-      int totalMenit = getTotalMenit(inputJam);
-      if (totalMenit > (MENIT_DALAM_SEHARI - 1) || totalMenit < 0
-          || Integer.parseInt(arrJamMenit[0]) > 23 || Integer.parseInt(arrJamMenit[1]) > 59
-          || Integer.parseInt(arrJamMenit[0]) < 0 || Integer.parseInt(arrJamMenit[1]) < 0) {
-        return false;
-      }
-    } catch (NumberFormatException e) {
-      valid = false;
-    }
-    return valid;
-  }
-
-  public static boolean isInputPerintahValid(String perintah) {
-    if (perintah.length() < 2) {
-      return false;
-    }
-    boolean isValid = true;
-    try {
-      Integer.parseInt(perintah.substring(1));
-      if (perintah.charAt(0) != '-' && perintah.charAt(0) != '+') {
-        return false;
-      }
-    } catch (NumberFormatException e) {
-      return false;
-    }
-    return isValid;
-  }
-
-  public static int getN(String perintah) {
-    return Integer.parseInt(perintah.substring(1));
-  }
-
-  public static char getPerintah(String perintah) {
-    return perintah.charAt(0);
-  }
-
-  public static void tampilkan(int totalMenitAwal, int totalMenitSekarang, int totalMenitPerintah, int pergantianHari) {
-    System.out.printf("Jam Awal: %02d:%02d\n", (totalMenitAwal / 60), (totalMenitAwal % 60));
-    System.out.printf("Jam Akhir: %02d:%02d\n", (totalMenitSekarang / 60), (totalMenitSekarang % 60));
-    if (totalMenitPerintah > 0) {
-      System.out.printf("Total Menit: +%d\n", totalMenitPerintah);
-    } else {
-      System.out.printf("Total Menit: %d\n", totalMenitPerintah);
-    }
-    System.out.printf("Pergantian Hari: %d\n", pergantianHari);
-  }
 }
